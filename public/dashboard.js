@@ -88,9 +88,9 @@
       $('#currentTask').textContent = session.task || 'Waiting...';
       $('#duration').textContent = formatDuration(session.durationMinutes || 0) + ' elapsed';
 
-      // Inner ring — context window usage (last input_tokens / 1M context)
+      // Inner ring — context window usage (scaled ~3.5x to approximate real usage)
       const ctxTokens = session.contextTokens || 0;
-      const ctxFraction = Math.min(1, ctxTokens / 1000000);
+      const ctxFraction = Math.min(1, (ctxTokens * 3.5) / 1000000);
       setRing(ringInner, INNER_CIRCUMFERENCE, ctxFraction);
       $('#statSession').textContent = ctxTokens > 0 ? Math.round(ctxFraction * 100) + '%' : '--';
 

@@ -10,11 +10,11 @@ A real-time monitoring dashboard designed for 480x480px circular CPU cooler LCD 
 
 | Element | Description |
 |---------|-------------|
-| **Outer ring** | Rate limit remaining (green = healthy, amber = low) |
-| **Inner ring** | Token consumption for the current session |
-| **Session dots** | Each dot is a Claude Code session (green = active, blue = thinking, grey = idle) |
+| **Outer ring** | Rate limit consumption (green = healthy, amber = approaching limit) |
+| **Inner ring** | Context window usage for the current session (approximate) |
+| **Session dots** | Each dot is a Claude Code session (green = active, blue = waiting, purple = subagents, grey = idle) |
 | **Center text** | Project name, status, current task, session duration |
-| **Stats row** | Session tokens, total tokens across all sessions, GPU utilization % |
+| **Stats row** | Context window %, total tokens across all sessions, GPU utilization % |
 
 The dashboard cycles through active sessions every 5 seconds and colour-codes everything by health state:
 
@@ -193,6 +193,10 @@ The backend watches `~/.claude/projects/` for `.jsonl` session log files using c
 - **Session name**: Derived from the project directory path (e.g., `C--Users-User-Projects-MyApp` becomes `MYAPP`)
 
 Subagent token usage (from `subagents/*.jsonl`) is automatically rolled into the parent session total.
+
+### Context window usage
+
+The inner ring and CTX stat show an approximation of how full the current session's context window is. This is calculated from the API's reported token usage (`input_tokens + cache_creation_input_tokens + cache_read_input_tokens`) and scaled by ~3.5x to account for overhead not captured in the JSONL logs (system prompts, tool schemas, MCP server definitions). The actual context window percentage shown by Claude Code's CLI is not exposed in a readable format, so this is a best-effort estimate. It will go up as conversations grow and drop after compaction.
 
 ### Rate limit estimation
 
