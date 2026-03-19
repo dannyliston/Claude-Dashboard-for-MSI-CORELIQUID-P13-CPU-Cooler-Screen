@@ -81,6 +81,14 @@ html, body {
   --text-opacity: 1;
 }
 
+.dashboard.health-purple {
+  --bg: #0a0a0f;
+  --status-color: #a855f7;
+  --ring-outer-color: #a855f7;
+  --ring-inner-color: #c084fc;
+  --text-opacity: 1;
+}
+
 .dashboard.health-grey {
   --bg: #050508;
   --status-color: #6b7280;
@@ -169,13 +177,18 @@ html, body {
 }
 
 .session-dot.waiting {
-  background: #ef4444;
-  box-shadow: 0 0 6px #ef444488;
+  background: #3b82f6;
+  box-shadow: 0 0 6px #3b82f688;
 }
 
 .session-dot.thinking {
-  background: #3b82f6;
-  box-shadow: 0 0 6px #3b82f688;
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e88;
+}
+
+.session-dot.subagent {
+  background: #a855f7;
+  box-shadow: 0 0 6px #a855f788;
 }
 
 .session-dot.idle {

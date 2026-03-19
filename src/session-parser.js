@@ -23,6 +23,7 @@ function parseSessionFile(filePath) {
   let inputTokens = 0;
   let outputTokens = 0;
   let lastTask = null;
+  let lastToolName = null;
   let cwd = null;
 
   for (const line of lines) {
@@ -58,6 +59,7 @@ function parseSessionFile(filePath) {
         for (let i = content.length - 1; i >= 0; i--) {
           if (content[i].type === 'tool_use') {
             lastTask = formatToolUse(content[i]);
+            lastToolName = content[i].name || null;
             break;
           }
           if (content[i].type === 'text' && content[i].text && !lastTask) {
@@ -96,6 +98,7 @@ function parseSessionFile(filePath) {
     lastUserTime: lastUserMs,
     lastAssistantTime: lastAssistantMs,
     lastActivity: Math.max(lastUserMs, lastAssistantMs),
+    hasActiveSubagents: status === 'THINKING' && lastToolName === 'Agent',
     firstTimestamp: firstMs,
     durationMinutes: Math.round((now - firstMs) / 60000),
   };

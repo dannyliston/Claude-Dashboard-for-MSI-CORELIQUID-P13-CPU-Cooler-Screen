@@ -74,6 +74,7 @@
     if (!session) {
       $('#sessionName').textContent = '';
       $('#statusText').textContent = 'NO SESSIONS';
+      $('#statusText').style.color = '';
       $('#currentTask').textContent = '';
       $('#duration').textContent = '';
       setRing(ringOuter, OUTER_CIRCUMFERENCE, 0);
@@ -83,6 +84,7 @@
     } else {
       $('#sessionName').textContent = session.name || '';
       $('#statusText').textContent = session.status || 'IDLE';
+      $('#statusText').style.color = statusColor(session);
       $('#currentTask').textContent = session.task || 'Waiting...';
       $('#duration').textContent = formatDuration(session.durationMinutes || 0) + ' elapsed';
 
@@ -119,7 +121,8 @@
     const visible = sessions.slice(0, MAX_DOTS);
     visible.forEach((s, i) => {
       const dot = document.createElement('div');
-      dot.className = 'session-dot ' + (s.status || 'idle').toLowerCase();
+      const dotClass = s.hasActiveSubagents ? 'subagent' : (s.status || 'idle').toLowerCase();
+      dot.className = 'session-dot ' + dotClass;
       if (i === currentIndex) dot.classList.add('current');
       container.appendChild(dot);
     });
@@ -129,6 +132,17 @@
       overflow.className = 'overflow';
       overflow.textContent = '+' + (sessions.length - MAX_DOTS);
       container.appendChild(overflow);
+    }
+  }
+
+  function statusColor(session) {
+    if (session.hasActiveSubagents) return '#a855f7'; // purple
+    switch (session.status) {
+      case 'THINKING': return '#22c55e'; // green
+      case 'WAITING':  return '#3b82f6'; // blue
+      case 'ERROR':    return '#ef4444'; // red
+      case 'IDLE':     return '#6b7280'; // grey
+      default:         return '#6b7280';
     }
   }
 

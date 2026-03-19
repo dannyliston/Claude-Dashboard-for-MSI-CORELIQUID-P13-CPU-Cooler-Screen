@@ -42,6 +42,7 @@ class StateManager {
         id: s.id,
         name: s.name,
         status: s.status,
+        hasActiveSubagents: s.hasActiveSubagents || false,
       })),
       currentSession: currentSession ? {
         name: currentSession.name,
@@ -50,6 +51,7 @@ class StateManager {
         durationMinutes: currentSession.durationMinutes,
         inputTokens: currentSession.inputTokens,
         outputTokens: currentSession.outputTokens,
+        hasActiveSubagents: currentSession.hasActiveSubagents || false,
       } : null,
       currentSessionIndex: idx >= 0 ? idx : 0,
       totalTokens,
@@ -67,19 +69,24 @@ class StateManager {
     const anyError = sessions.some(s => s.status === 'ERROR');
     if (anyError) return 'red';
 
-    const anyWaiting = sessions.some(s => s.status === 'WAITING');
-    if (anyWaiting) return 'red';
-
     const longThinking = sessions.some(s => {
       if (s.status !== 'THINKING') return false;
       const thinkingMs = Date.now() - s.lastActivity;
       return thinkingMs >= config.THINKING_THRESHOLD_MS;
     });
-
     if (longThinking) return 'amber';
 
+    // Purple: subagents actively running
+    const anySubagents = sessions.some(s => s.hasActiveSubagents);
+    if (anySubagents) return 'purple';
+
+    // Green: Claude is actively thinking/responding
     const anyThinking = sessions.some(s => s.status === 'THINKING');
-    if (anyThinking) return 'blue';
+    if (anyThinking) return 'green';
+
+    // Blue: waiting for user input (passive, calm)
+    const anyWaiting = sessions.some(s => s.status === 'WAITING');
+    if (anyWaiting) return 'blue';
 
     return 'green';
   }
