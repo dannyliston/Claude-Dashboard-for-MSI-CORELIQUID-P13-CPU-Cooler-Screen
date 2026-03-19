@@ -83,8 +83,12 @@ function parseSessionFile(filePath) {
 
   // Status derivation
   let status;
+  const isActiveToolRunning = lastToolName === 'Agent' || lastToolName === 'Bash' || lastToolName === 'mcp__Claude_Preview__preview_start';
   if (lastUserMs > lastAssistantMs) {
     // User sent a message, Claude hasn't responded yet — Claude is working
+    status = 'THINKING';
+  } else if (isActiveToolRunning && (now - lastAssistantMs) < config.SESSION_STALE_MINUTES * 60 * 1000) {
+    // Last tool is still likely running (Agent, Bash, etc.) — not actually waiting
     status = 'THINKING';
   } else if (lastAssistantMs > lastUserMs && (now - lastAssistantMs) < config.SESSION_STALE_MINUTES * 60 * 1000) {
     // Claude responded last — waiting for user input
