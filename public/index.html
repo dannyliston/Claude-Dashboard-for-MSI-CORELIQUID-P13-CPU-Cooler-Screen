@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=480, height=480, initial-scale=1">
+  <title>Claude Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="dashboard health-green" id="dashboard">
+
+    <!-- Concentric ring gauges -->
+    <svg class="rings" viewBox="0 0 480 480">
+      <!-- Outer ring: rate limit (radius 220, circumference ≈ 1382.3) -->
+      <circle class="ring-track ring-outer-track" cx="240" cy="240" r="220"/>
+      <circle class="ring-value ring-outer-value" id="ringOuter"
+              cx="240" cy="240" r="220"
+              stroke-dasharray="1382.3"
+              stroke-dashoffset="414.7"
+              transform="rotate(-90 240 240)"/>
+
+      <!-- Inner ring: token usage (radius 194, circumference ≈ 1219.0) -->
+      <circle class="ring-track ring-inner-track" cx="240" cy="240" r="194"/>
+      <circle class="ring-value ring-inner-value" id="ringInner"
+              cx="240" cy="240" r="194"
+              stroke-dasharray="1219.0"
+              stroke-dashoffset="792.3"
+              transform="rotate(-90 240 240)"/>
+    </svg>
+
+    <!-- All content centered via flex -->
+    <div class="content-wrap">
+
+    <!-- Session dots -->
+    <div class="session-dots" id="sessionDots">
+      <div class="session-dot active current"></div>
+      <div class="session-dot thinking"></div>
+      <div class="session-dot idle"></div>
+    </div>
+
+    <!-- Center content -->
+    <div class="center" id="centerContent">
+      <div class="session-name" id="sessionName">PPM TOOL</div>
+      <div class="status-text" id="statusText">ACTIVE</div>
+      <div class="current-task" id="currentTask">Editing server.ts</div>
+      <div class="duration" id="duration">24m elapsed</div>
+    </div>
+
+    <!-- Stats row -->
+    <div class="stats-row" id="statsRow">
+      <div class="stat">
+        <div class="stat-value tokens" id="statSession">12.4k</div>
+        <div class="stat-label">session</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value rate" id="statAll">34k</div>
+        <div class="stat-label">all</div>
+      </div>
+      <div class="stat">
+        <div class="stat-value gpu" id="statGpu">8%</div>
+        <div class="stat-label">fps</div>
+      </div>
+    </div>
+
+    </div><!-- /content-wrap -->
+
+    <!-- Connection state overlay (hidden by default) -->
+    <div class="connection-state" id="connectionState">
+      <div class="label connecting">CONNECTING...</div>
+    </div>
+
+  </div>
+
+  <script src="dashboard.js"></script>
+</body>
+</html>

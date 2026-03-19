@@ -1,0 +1,337 @@
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('fonts/JetBrainsMono-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: url('fonts/JetBrainsMono-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #000;
+  font-family: 'JetBrains Mono', 'Cascadia Code', 'Consolas', monospace;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Main container: circular clip ── */
+.dashboard {
+  width: 100vw;
+  height: 100vh;
+  clip-path: circle(min(50vw, 50vh) at 50% 50%);
+  background: var(--bg);
+  position: relative;
+  transition: background 800ms ease;
+}
+
+/* ── CSS custom properties per health state ── */
+.dashboard {
+  --bg: #0a0a0f;
+  --status-color: #6b7280;
+  --ring-outer-color: #1a1a2e;
+  --ring-inner-color: #1a1a2e;
+  --text-opacity: 1;
+}
+
+.dashboard.health-green {
+  --bg: #0a0a0f;
+  --status-color: #22c55e;
+  --ring-outer-color: #22c55e;
+  --ring-inner-color: #f59e0b;
+  --text-opacity: 1;
+}
+
+.dashboard.health-blue {
+  --bg: #0a0a0f;
+  --status-color: #3b82f6;
+  --ring-outer-color: #22c55e;
+  --ring-inner-color: #f59e0b;
+  --text-opacity: 1;
+}
+
+.dashboard.health-amber {
+  --bg: #0a0a0f;
+  --status-color: #f59e0b;
+  --ring-outer-color: #f59e0b;
+  --ring-inner-color: #f59e0b;
+  --text-opacity: 1;
+}
+
+.dashboard.health-red {
+  --bg: #0a0a0f;
+  --status-color: #ef4444;
+  --ring-outer-color: #ef4444;
+  --ring-inner-color: #ef4444;
+  --text-opacity: 1;
+}
+
+.dashboard.health-grey {
+  --bg: #050508;
+  --status-color: #6b7280;
+  --ring-outer-color: #6b7280;
+  --ring-inner-color: #6b7280;
+  --text-opacity: 0.3;
+}
+
+/* ── Ring SVG ── */
+.rings {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  height: 480px;
+}
+
+.ring-track {
+  fill: none;
+  stroke: #1a1a2e;
+  transition: stroke 500ms ease;
+}
+
+.ring-outer-track { stroke-width: 10; }
+.ring-inner-track { stroke-width: 7; }
+
+.ring-value {
+  fill: none;
+  stroke-linecap: round;
+  transition: stroke-dashoffset 500ms ease-out, stroke 500ms ease;
+}
+
+.ring-outer-value {
+  stroke-width: 10;
+  stroke: var(--ring-outer-color);
+}
+
+.ring-inner-value {
+  stroke-width: 7;
+  stroke: var(--ring-inner-color);
+}
+
+/* Dashed ring for unknown rate limit */
+.ring-outer-value.unknown {
+  stroke: #374151;
+  stroke-dasharray: 8 12;
+  stroke-linecap: butt;
+}
+
+/* ── Content wrapper: flex column centered in circle ── */
+.content-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 480px;
+  height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* ── Session dots ── */
+.session-dots {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.session-dot {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #6b7280;
+  transition: background 500ms ease, box-shadow 500ms ease, opacity 500ms ease;
+  opacity: var(--text-opacity);
+}
+
+.session-dot.active {
+  background: #22c55e;
+  box-shadow: 0 0 6px #22c55e88;
+}
+
+.session-dot.waiting {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef444488;
+}
+
+.session-dot.thinking {
+  background: #3b82f6;
+  box-shadow: 0 0 6px #3b82f688;
+}
+
+.session-dot.idle {
+  background: #6b7280;
+  box-shadow: none;
+}
+
+.session-dot.error {
+  background: #ef4444;
+  box-shadow: 0 0 6px #ef444488;
+}
+
+.session-dot.current {
+  animation: dot-pulse 2s ease-in-out infinite;
+}
+
+.session-dots .overflow {
+  font-size: 10px;
+  color: #6b7280;
+  line-height: 11px;
+  opacity: var(--text-opacity);
+}
+
+@keyframes dot-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.4); }
+}
+
+/* ── Center content ── */
+.center {
+  text-align: center;
+  transition: opacity 800ms ease;
+  opacity: var(--text-opacity);
+}
+
+.session-name {
+  font-size: 18px;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  color: #6b7280;
+  transition: color 500ms ease;
+}
+
+.status-text {
+  font-size: 48px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: var(--status-color);
+  margin: 8px 0;
+  transition: color 500ms ease;
+}
+
+.current-task {
+  font-size: 20px;
+  font-weight: 400;
+  color: #c4b5fd;
+  margin-bottom: 5px;
+  max-width: 300px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.duration {
+  font-size: 16px;
+  font-weight: 400;
+  color: #6b7280;
+}
+
+/* ── Stats row ── */
+.stats-row {
+  display: flex;
+  gap: 28px;
+  margin-top: 20px;
+  transition: opacity 800ms ease;
+  opacity: var(--text-opacity);
+}
+
+.stat {
+  text-align: center;
+}
+
+.stat-value {
+  font-size: 26px;
+  font-weight: 700;
+  transition: color 500ms ease;
+}
+
+.stat-value.rate { color: #22c55e; }
+.stat-value.tokens { color: #f59e0b; }
+.stat-value.gpu { color: #9ca3af; }
+
+.stat-label {
+  font-size: 14px;
+  font-weight: 400;
+  text-transform: uppercase;
+  color: #6b7280;
+  margin-top: 2px;
+}
+
+/* ── Idle breathing animation ── */
+.dashboard.health-grey .center,
+.dashboard.health-grey .stats-row,
+.dashboard.health-grey .session-dots {
+  animation: idle-breathe 4s ease-in-out infinite;
+}
+
+@keyframes idle-breathe {
+  0%, 100% { opacity: 0.2; }
+  50% { opacity: 0.35; }
+}
+
+/* ── Connection state overlay ── */
+.connection-state {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  z-index: 10;
+  display: none;
+}
+
+.connection-state.visible {
+  display: block;
+}
+
+.connection-state .label {
+  font-size: 22px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  color: #6b7280;
+}
+
+.connection-state .label.error {
+  color: #ef4444;
+}
+
+.connection-state.visible .label.connecting {
+  animation: connecting-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes connecting-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+/* ── Startup animation ── */
+.dashboard.starting .ring-value {
+  stroke-dashoffset: var(--ring-circumference) !important;
+}
+
+.dashboard.starting .center,
+.dashboard.starting .stats-row {
+  opacity: 0;
+}
