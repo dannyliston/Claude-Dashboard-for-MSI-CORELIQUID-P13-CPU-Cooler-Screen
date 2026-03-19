@@ -43,6 +43,11 @@ stateManager.startRotation();
 
 // Broadcast state to all connected clients
 setInterval(() => {
+  // Feed rate estimator before getting state
+  const sessions = sessionWatcher.getSessions();
+  const totalTokens = sessions.reduce((sum, s) => sum + s.inputTokens + s.outputTokens, 0);
+  rateEstimator.recordUsage(totalTokens);
+
   const state = stateManager.getState();
   const payload = JSON.stringify(state);
   for (const client of wss.clients) {

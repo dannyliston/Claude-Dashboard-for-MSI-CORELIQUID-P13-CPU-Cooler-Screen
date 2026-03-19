@@ -24,6 +24,7 @@ function parseSessionFile(filePath) {
   let outputTokens = 0;
   let lastTask = null;
   let lastToolName = null;
+  let contextTokens = 0;
   let cwd = null;
 
   for (const line of lines) {
@@ -51,6 +52,9 @@ function parseSessionFile(filePath) {
       if (usage) {
         inputTokens += usage.input_tokens || 0;
         outputTokens += usage.output_tokens || 0;
+        // Context window = input + cache_creation + cache_read (total prompt tokens)
+        const ctx = (usage.input_tokens || 0) + (usage.cache_creation_input_tokens || 0) + (usage.cache_read_input_tokens || 0);
+        if (ctx > 0) contextTokens = ctx;
       }
 
       // Extract current task from last tool_use in content
@@ -99,6 +103,7 @@ function parseSessionFile(filePath) {
     lastAssistantTime: lastAssistantMs,
     lastActivity: Math.max(lastUserMs, lastAssistantMs),
     hasActiveSubagents: status === 'THINKING' && lastToolName === 'Agent',
+    contextTokens,
     firstTimestamp: firstMs,
     durationMinutes: Math.round((now - firstMs) / 60000),
   };

@@ -52,9 +52,11 @@ class StateManager {
         inputTokens: currentSession.inputTokens,
         outputTokens: currentSession.outputTokens,
         hasActiveSubagents: currentSession.hasActiveSubagents || false,
+        contextTokens: currentSession.contextTokens || 0,
       } : null,
       currentSessionIndex: idx >= 0 ? idx : 0,
       totalTokens,
+      rateEstimate: this.rateEstimator.getEstimate(),
       health,
       gpu,
     };

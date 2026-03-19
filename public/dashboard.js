@@ -88,18 +88,22 @@
       $('#currentTask').textContent = session.task || 'Waiting...';
       $('#duration').textContent = formatDuration(session.durationMinutes || 0) + ' elapsed';
 
-      // Current session tokens — inner ring
-      const sessionTok = (session.inputTokens || 0) + (session.outputTokens || 0);
-      const sessionFraction = Math.min(1, sessionTok / 1000000);
-      setRing(ringInner, INNER_CIRCUMFERENCE, sessionFraction);
-      $('#statSession').textContent = formatTokens(sessionTok);
+      // Inner ring — context window usage (last input_tokens / 1M context)
+      const ctxTokens = session.contextTokens || 0;
+      const ctxFraction = Math.min(1, ctxTokens / 1000000);
+      setRing(ringInner, INNER_CIRCUMFERENCE, ctxFraction);
+      $('#statSession').textContent = ctxTokens > 0 ? Math.round(ctxFraction * 100) + '%' : '--';
 
-      // All sessions tokens — outer ring
-      const allTok = state.totalTokens || 0;
-      const allFraction = Math.min(1, allTok / 5000000); // 5M visual ceiling for all sessions
-      setRing(ringOuter, OUTER_CIRCUMFERENCE, allFraction);
-      ringOuter.classList.remove('unknown');
-      $('#statAll').textContent = formatTokens(allTok);
+      // Outer ring — rate limit remaining
+      const rate = state.rateEstimate || { remaining: 1, known: false };
+      if (rate.known) {
+        setRing(ringOuter, OUTER_CIRCUMFERENCE, 1 - rate.remaining);
+        ringOuter.classList.remove('unknown');
+      } else {
+        setRing(ringOuter, OUTER_CIRCUMFERENCE, 0);
+        ringOuter.classList.add('unknown');
+      }
+      $('#statAll').textContent = formatTokens(state.totalTokens || 0);
     }
 
     // GPU

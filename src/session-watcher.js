@@ -98,6 +98,7 @@ class SessionWatcher {
       outputTokens: parsed.outputTokens,
       lastActivity: parsed.lastActivity,
       hasActiveSubagents: parsed.hasActiveSubagents,
+      contextTokens: parsed.contextTokens,
     });
   }
 }
