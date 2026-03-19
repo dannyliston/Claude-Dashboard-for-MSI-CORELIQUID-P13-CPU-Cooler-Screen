@@ -57,8 +57,8 @@ setInterval(() => {
   }
 }, config.POLL_INTERVAL_MS);
 
-// Poll FPS
-setInterval(() => fpsCollector.poll(), config.POLL_INTERVAL_MS);
+// Poll GPU utilization every 10 seconds (nvidia-smi is expensive to spawn)
+setInterval(() => fpsCollector.poll(), 10000);
 
 // Start
 const port = process.env.PORT || config.PORT;

@@ -1,21 +1,26 @@
-const { execSync } = require('child_process');
+const { exec } = require('child_process');
 
 class GpuCollector {
   constructor() {
     this._gpu = null;
+    this._pending = false;
   }
 
   poll() {
-    try {
-      const output = execSync(
-        'nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits',
-        { timeout: 3000, encoding: 'utf-8', stdio: ['pipe', 'pipe', 'pipe'] }
-      );
-      const val = parseInt(output.trim(), 10);
-      this._gpu = isNaN(val) ? null : val;
-    } catch {
-      this._gpu = null;
-    }
+    // Skip if a previous poll is still running
+    if (this._pending) return;
+    this._pending = true;
+
+    exec(
+      'nvidia-smi --query-gpu=utilization.gpu --format=csv,noheader,nounits',
+      { timeout: 5000, windowsHide: true },
+      (err, stdout) => {
+        this._pending = false;
+        if (err) { this._gpu = null; return; }
+        const val = parseInt(stdout.trim(), 10);
+        this._gpu = isNaN(val) ? null : val;
+      }
+    );
   }
 
   getFps() {
