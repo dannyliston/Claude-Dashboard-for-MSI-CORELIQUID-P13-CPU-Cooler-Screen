@@ -1,10 +1,13 @@
-# Claude Cooler Dashboard — Startup Script
+# Claude Cooler Dashboard - Startup Script
 # Designed to run at Windows login via Task Scheduler
 # Starts the backend and Chrome kiosk if not already running
 
-Add-Type -AssemblyName System.Windows.Forms
-
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+Start-Transcript -Path "$scriptDir\startup.log" -Force
+
+try {
+
+Add-Type -AssemblyName System.Windows.Forms
 
 # Check if backend is already running
 $existing = Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object {
@@ -26,7 +29,7 @@ $coolerDisplay = [System.Windows.Forms.Screen]::AllScreens | Where-Object {
 }
 
 if (-not $coolerDisplay) {
-    Write-Host "No 480x480 cooler display found — backend running, Chrome skipped"
+    Write-Host "No 480x480 cooler display found - backend running, Chrome skipped"
     exit 0
 }
 
@@ -44,4 +47,12 @@ if (-not $chromeRunning) {
     Write-Host "Chrome launched on cooler display at ($x, $y)"
 } else {
     Write-Host "Chrome already running on cooler display"
+}
+
+} catch {
+    $errMsg = $_.Exception.Message
+    Write-Host "ERROR: $errMsg"
+    exit 1
+} finally {
+    Stop-Transcript
 }
