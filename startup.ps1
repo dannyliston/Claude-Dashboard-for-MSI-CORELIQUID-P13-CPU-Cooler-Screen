@@ -1,53 +1,29 @@
 # Claude Cooler Dashboard - Startup Script
 # Designed to run at Windows login via Task Scheduler
-# Starts the backend and Chrome kiosk if not already running
+# Launches the tray controller which handles backend + Chrome
 
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Start-Transcript -Path "$scriptDir\startup.log" -Force
 
 try {
 
-Add-Type -AssemblyName System.Windows.Forms
-
-# Check if backend is already running
-$existing = Get-Process -Name "node" -ErrorAction SilentlyContinue | Where-Object {
-    try { $_.CommandLine -match "server\.js" } catch { $false }
+# Check if tray is already running
+$trayRunning = Get-Process -Name "powershell" -ErrorAction SilentlyContinue | Where-Object {
+    try { $_.CommandLine -match "tray\.ps1" } catch { $false }
 }
 
-if ($existing) {
-    Write-Host "Dashboard backend already running (PID: $($existing.Id))"
-} else {
-    $backend = Start-Process -FilePath "node" -ArgumentList "server.js" `
-        -WorkingDirectory $scriptDir -PassThru -WindowStyle Hidden
-    Write-Host "Backend started (PID: $($backend.Id))"
-    Start-Sleep -Seconds 2
-}
-
-# Find the 480x480 display
-$coolerDisplay = [System.Windows.Forms.Screen]::AllScreens | Where-Object {
-    $_.Bounds.Width -eq 480 -and $_.Bounds.Height -eq 480
-}
-
-if (-not $coolerDisplay) {
-    Write-Host "No 480x480 cooler display found - backend running, Chrome skipped"
+if ($trayRunning) {
+    Write-Host "Tray controller already running - skipping"
     exit 0
 }
 
-$x = $coolerDisplay.Bounds.X
-$y = $coolerDisplay.Bounds.Y
+# Launch tray controller with auto-start flag (hidden window)
+$trayScript = Join-Path $scriptDir "tray.ps1"
+Start-Process -FilePath "powershell.exe" `
+    -ArgumentList "-ExecutionPolicy Bypass -WindowStyle Hidden -File `"$trayScript`" -AutoStart" `
+    -WindowStyle Hidden
 
-# Check if Chrome kiosk is already on the cooler display
-$chromeRunning = Get-Process -Name "chrome" -ErrorAction SilentlyContinue | Where-Object {
-    try { $_.CommandLine -match "localhost:7891" } catch { $false }
-}
-
-if (-not $chromeRunning) {
-    $chromeArgs = "--app=http://localhost:7891 --window-position=$x,$y --window-size=480,480 --disable-infobars --disable-session-crashed-bubble --kiosk"
-    Start-Process "chrome" $chromeArgs
-    Write-Host "Chrome launched on cooler display at ($x, $y)"
-} else {
-    Write-Host "Chrome already running on cooler display"
-}
+Write-Host "Tray controller launched with auto-start"
 
 } catch {
     $errMsg = $_.Exception.Message

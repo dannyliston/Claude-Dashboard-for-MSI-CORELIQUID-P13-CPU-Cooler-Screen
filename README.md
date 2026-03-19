@@ -151,15 +151,39 @@ Register-ScheduledTask `
 
 Replace `C:\path\to\cpu-screen-dashboard` with your actual install path.
 
+## Desktop shortcut
+
+Run once to create a shortcut on your desktop:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File create-shortcut.ps1
+```
+
+Double-clicking the shortcut launches the dashboard with a system tray icon. Right-click the tray icon for Start/Stop/Restart/Exit.
+
+## System tray
+
+The tray controller (`tray.ps1`) is the recommended way to run the dashboard:
+
+- **Tray icon** appears in the system tray (notification area)
+- **Right-click menu**: Start Dashboard, Stop Dashboard, Restart Dashboard, Exit
+- **Double-click** the tray icon to start/restart
+- Chrome window is **hidden from the taskbar** — it only shows on the cooler screen
+- The tray process runs silently with no console window
+
+The desktop shortcut, Task Scheduler startup, and manual launch all use the tray controller.
+
 ## Scripts
 
 | Script | Purpose |
 |--------|---------|
-| `launch.ps1` | Manual start — launches backend + Chrome kiosk |
-| `startup.ps1` | Auto-start — idempotent, skips if already running, logs to `startup.log` |
+| `tray.ps1` | System tray controller with Start/Stop/Restart menu (recommended) |
+| `launch.ps1` | Direct launch — backend + Chrome kiosk, no tray |
+| `startup.ps1` | Auto-start at login — launches tray controller, logs to `startup.log` |
 | `stop.ps1` | Kills backend and Chrome kiosk window |
+| `create-shortcut.ps1` | Creates a desktop shortcut (run once) |
 
-`startup.ps1` is safe to run multiple times — it checks for existing processes before launching anything.
+All scripts are safe to run multiple times — they check for existing processes before launching.
 
 ## Configuration
 
@@ -204,7 +228,7 @@ Token consumption is tracked over a 60-minute rolling window. The estimator calc
 
 ### GPU utilization
 
-If an NVIDIA GPU is present, the backend polls `nvidia-smi` every 2 seconds for GPU utilization percentage. This is displayed in the stats row. If nvidia-smi isn't available, the value shows as `--`.
+If an NVIDIA GPU is present, the backend polls `nvidia-smi` every 10 seconds for GPU utilization percentage. This is displayed in the stats row. If nvidia-smi isn't available, the value shows as `--`.
 
 ## Project structure
 
@@ -212,9 +236,12 @@ If an NVIDIA GPU is present, the backend polls `nvidia-smi` every 2 seconds for 
 cpu-screen-dashboard/
 ├── server.js              # HTTP + WebSocket server (entry point)
 ├── config.js              # All configurable settings
-├── launch.ps1             # Manual launch script
+├── tray.ps1               # System tray controller (recommended entry point)
+├── launch.ps1             # Direct launch script (no tray)
 ├── startup.ps1            # Auto-start script (for Task Scheduler)
 ├── stop.ps1               # Shutdown script
+├── create-shortcut.ps1    # Creates a desktop shortcut (run once)
+├── dashboard.ico          # App icon for tray and shortcut
 ├── package.json
 ├── src/
 │   ├── session-watcher.js # Watches ~/.claude/projects/ for changes
