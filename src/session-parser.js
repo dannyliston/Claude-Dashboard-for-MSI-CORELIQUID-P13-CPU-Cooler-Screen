@@ -24,6 +24,7 @@ function parseSessionFile(filePath) {
   let outputTokens = 0;
   let lastTask = null;
   let lastToolName = null;
+  let lastStopReason = null;
   let contextTokens = 0;
   let cwd = null;
 
@@ -46,6 +47,7 @@ function parseSessionFile(filePath) {
 
     if (event.type === 'assistant' && event.message) {
       lastAssistantTime = event.timestamp;
+      if (event.message.stop_reason) lastStopReason = event.message.stop_reason;
 
       // Accumulate token usage
       const usage = event.message.usage;
@@ -82,17 +84,23 @@ function parseSessionFile(filePath) {
   const lastAssistantMs = lastAssistantTime ? new Date(lastAssistantTime).getTime() : 0;
 
   // Status derivation
+  // The key signal is stop_reason from the last assistant message:
+  //   "tool_use"  = Claude called a tool and is waiting for the result (still working)
+  //   "end_turn"  = Claude finished its turn (actually waiting for user input)
   let status;
-  const isActiveToolRunning = lastToolName === 'Agent' || lastToolName === 'Bash' || lastToolName === 'mcp__Claude_Preview__preview_start';
+  const staleMs = config.SESSION_STALE_MINUTES * 60 * 1000;
   if (lastUserMs > lastAssistantMs) {
     // User sent a message, Claude hasn't responded yet — Claude is working
     status = 'THINKING';
-  } else if (isActiveToolRunning && (now - lastAssistantMs) < config.SESSION_STALE_MINUTES * 60 * 1000) {
-    // Last tool is still likely running (Agent, Bash, etc.) — not actually waiting
-    status = 'THINKING';
-  } else if (lastAssistantMs > lastUserMs && (now - lastAssistantMs) < config.SESSION_STALE_MINUTES * 60 * 1000) {
-    // Claude responded last — waiting for user input
-    status = 'WAITING';
+  } else if (lastAssistantMs > lastUserMs && (now - lastAssistantMs) < staleMs) {
+    // Claude responded last — but is it actually done?
+    if (lastStopReason === 'tool_use') {
+      // Claude called a tool — it's mid-turn, not waiting for user
+      status = 'THINKING';
+    } else {
+      // end_turn or other — Claude is done, waiting for user input
+      status = 'WAITING';
+    }
   } else {
     status = 'IDLE';
   }
