@@ -38,12 +38,14 @@ class StateManager {
     const currentSession = sessions[idx] || null;
 
     return {
-      sessions: sessions.map(s => ({
-        id: s.id,
-        name: s.name,
-        status: s.status,
-        hasActiveSubagents: s.hasActiveSubagents || false,
-      })),
+      sessions: sessions
+        .filter(s => s.status !== 'IDLE')
+        .map(s => ({
+          id: s.id,
+          name: s.name,
+          status: s.status,
+          hasActiveSubagents: s.hasActiveSubagents || false,
+        })),
       currentSession: currentSession ? {
         name: currentSession.name,
         status: currentSession.status,
